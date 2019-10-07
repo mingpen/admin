@@ -243,7 +243,7 @@ func (context *Context) URLFor(value interface{}, resources ...*Resource) string
 			)
 
 			for _, primaryField := range res.PrimaryFields {
-				if field, ok := scope.FieldByName(primaryField.Name); ok {
+				if field, ok := scope.FieldByName(primaryField.Name); ok && field != nil && field.Field.IsValid() {
 					primaryFields = append(primaryFields, fmt.Sprint(field.Field.Interface())) // TODO improve me
 				}
 			}
@@ -258,7 +258,10 @@ func (context *Context) URLFor(value interface{}, resources ...*Resource) string
 				}
 
 				if !useAsPrimaryField {
-					primaryValues[fmt.Sprintf("primary_key[%v_%v]", scope.TableName(), field.DBName)] = fmt.Sprint(reflect.Indirect(field.Field).Interface())
+					v := reflect.Indirect(field.Field)
+					if v.IsValid() {
+						primaryValues[fmt.Sprintf("primary_key[%v_%v]", scope.TableName(), field.DBName)] = fmt.Sprint(v.Interface())
+					}
 				}
 			}
 
